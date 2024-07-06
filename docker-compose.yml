@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  auth-service:
+    build: .
+    ports:
+      - "54321:8080" # Replace 8080 with the value of config.PORT if different
+      - "50001:8081" # Replace 8081 with the value of config.PORT2 if different
+    environment:
+      - RATE_LIMIT_GLOBAL=5 # Adjust according to your rate limit needs
+      - RATE_LIMIT_GLOBAL_BURST=5 # Adjust according to your rate limit needs
+      - JWT_SECRET=$secret
+      - JWT_EXPIRATION=72
+    volumes:
+      - .:/app
+    command: go run main.go
+    depends_on:
+      - db
+    networks:
+      - auth-net
+
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: authdb
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - auth-net
+
+volumes:
+  pgdata:
+
+networks:
+  auth-net:
+    driver: bridge
